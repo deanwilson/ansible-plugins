@@ -5,6 +5,14 @@ Ansible Plugins
 
 ## Lookup Plugins ##
 
+### AWS Regions ###
+
+Allows you to look up the available AWS Regions and then filters out any that contain
+the string 'gov'
+
+    - shell: echo region is =={{ item }}==
+      with_items: lookup('aws_regions').split(',')
+
 ### Cloudformation ###
 
 Allows you to look up Cloudformation stack output values.
