@@ -7,11 +7,9 @@
 from ansible import errors
 import os
 
-HAVE_BOTO = False
 try:
     import boto
     import boto.elasticache
-    HAVE_BOTO = True
 except ImportError:
     raise errors.AnsibleError("Can't LOOKUP(elasticache_replica_group): module boto is not installed")
 
