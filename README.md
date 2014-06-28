@@ -39,3 +39,14 @@ and some actual examples:
     {{ lookup('elasticache_replica_group', 'ap-southeast-1/locarch2-elastiredis/endpoint_address') }}
 
     {{ lookup('elasticache_replica_group', 'ap-southeast-1/locarch2-elastiredis/endpoint_port') }}
+
+
+### AWS Security Group ID ###
+
+Allows you to look up the ID (something like sg-62f43457) of a remote security group.
+
+    "{{ lookup('aws_sg_id', 'eu-west-1/my-stack-name') }}"
+
+I wrote this to avoid adding lots of outputs to certain templates.
+
+
