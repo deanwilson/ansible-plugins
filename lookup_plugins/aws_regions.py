@@ -10,7 +10,9 @@ try:
     import boto
     import boto.ec2
 except ImportError:
-    raise errors.AnsibleError("Can't LOOKUP(aws_regions): module boto is not installed")
+    raise errors.AnsibleError(
+        "Can't LOOKUP(aws_regions): module boto is not installed")
+
 
 class LookupModule(object):
 
@@ -18,6 +20,6 @@ class LookupModule(object):
         self.basedir = basedir
 
     def run(self, terms=None, inject=None, **kwargs):
-        regions = [ r.name for r in boto.ec2.regions() if "gov" not in r.name ]
+        regions = [r.name for r in boto.ec2.regions() if "gov" not in r.name]
 
         return regions

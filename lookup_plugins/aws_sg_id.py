@@ -14,13 +14,13 @@
 # along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
 
 from ansible import errors
-import os
 
 try:
     import boto
     import boto.ec2
 except ImportError:
-    raise errors.AnsibleError("Can't LOOKUP(aws_sg_id): module boto is not installed")
+    raise errors.AnsibleError(
+        "Can't LOOKUP(aws_sg_id): module boto is not installed")
 
 
 class AWSSecurityGroupID(object):
@@ -28,15 +28,10 @@ class AWSSecurityGroupID(object):
     def __init__(self, region):
         self.region = region
 
-        self.aws_secret_key = os.environ['AWS_SECRET_KEY']
-        self.aws_access_key = os.environ['AWS_ACCESS_KEY']
-
     def get_group_id(self, group_name):
 
         # TODO error checking
-        conn = boto.ec2.connect_to_region(self.region,
-                   aws_access_key_id=self.aws_access_key, 
-                   aws_secret_access_key=self.aws_secret_key)
+        conn = boto.ec2.connect_to_region(self.region)
 
         sg = conn.get_all_security_groups(groupnames=group_name)[0]
 
@@ -47,7 +42,6 @@ class LookupModule(object):
 
     def __init__(self, basedir=None, **kwargs):
         self.basedir = basedir
-
 
     def run(self, terms, inject=None, **kwargs):
         region, group_name = terms.split('/')
