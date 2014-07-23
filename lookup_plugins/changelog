@@ -1,0 +1,147 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# (c) 2014, Dean Wilson <dean.wilson@gmail.com>
+#
+# Ansible is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Ansible is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+
+DOCUMENTATION = """
+module: changelog
+short_description: Send events to changelog
+description:
+    - The M(changelog) module sends event notifications to a local
+      U(https://github.com/prezi/changelog) instance
+version_added: 1.6
+author: Dean Wilson <dean.wilson@gmail.com>
+options:
+  host:
+    description:
+      - The changelog server
+    default: 'localhost'
+    required: false
+  port:
+    description:
+      - The changelog server port
+    default: '5000'
+    required: false
+  message:
+    description:
+      - The event message to send
+    required: true
+  category:
+    description:
+      - The category of the event
+    required: true
+  time:
+    description:
+      - The time the event happened
+    default: 'Current time'
+    required: false
+  criticality:
+    description:
+      - The criticality of the event:
+        info | notification | warning | error | critical
+    default: 'info'
+    required: false
+"""
+
+EXAMPLES = '''
+
+# sending a basic event message to a local changelog instance
+- local_action: changelog message="Ansible playbook's running" category=ansible
+
+# log a critical event to a remove server
+
+- local_action: changelog
+                message="An issue was detected in our Ansible playbook!"
+                category=ansible
+                criticality=critical
+                host=changelog.example.org
+
+'''
+
+import time
+
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
+
+def criticality_to_int(criticality):
+    ''' convert criticality from a name to a number '''
+
+    criticalities = {
+        'info': 1,
+        'notification': 2,
+        'warning': 3,
+        'error': 4,
+        'critical': 5}
+
+    if criticality not in criticalities.keys():
+        module.fail_json(rc=1,
+                         msg='%s is not a valid criticality' % (criticality))
+
+    return criticalities[criticality]
+
+
+def main():
+
+    module = AnsibleModule(
+        argument_spec=dict(
+            host=dict(default='localhost'),
+            port=dict(default=5000),
+            message=dict(required=True),
+            category=dict(required=True),
+            time=dict(default=None),
+            criticality=dict(default='info',
+                             choices=['info', 'notification',
+                                      'warning', 'error'
+                                      'critical'])))
+
+    host = module.params.get('host')
+    port = module.params.get('port')
+    message = module.params.get('message')
+    category = module.params.get('category')
+
+    criticality = criticality_to_int(module.params.get('criticality'))
+
+    epoch = int(time.time())
+    if module.params['time']:
+        epoch = module.params['time']
+
+    event = json.dumps({
+        "criticality": "%d" % criticality,
+        "unix_timestamp": "%d" % epoch,
+        "category": category,
+        "description": message})
+
+    headers = {'Content-Type': 'application/json'}
+    endpoint = "http://%s:%d/api/events" % (host, port)
+
+    response, info = fetch_url(module, endpoint,
+                               headers=headers,
+                               data=event,
+                               method='POST')
+
+    if info['status'] != 200:
+        module.fail_json(msg="Unable to send msg: %s" % info['msg'])
+
+    module.exit_json(changed=True)
+
+# import module snippets
+from ansible.module_utils.basic import *
+from ansible.module_utils.urls import *
+
+main()

@@ -3,7 +3,29 @@ ansible-plugins
 
 Ansible Plugins
 
+## Notification Plugins ##
+
+### changelog  ###
+
+A simple notification plugin for the [Prezi Changelog](https://github.com/prezi/changelog)
+event dashboard:
+
+    - local_action: changelog message="Ansible playbook is running - 003"
+      category=ansible
+
+
+    - local_action: changelog
+                    message="An issue was detected in our Ansible playbook!"
+                    category=ansible
+                    criticality=critical
+                    host=changelog.example.org
+
+
 ## Lookup Plugins ##
+
+Most of the AWS Lookup plugins contained here assume that you have a
+correctly configured .aws/credentials file. This provides the credentials
+for boto, the underlying AWS library used by Ansible.
 
 ### AWS Regions ###
 
