@@ -72,3 +72,10 @@ Allows you to look up the ID (something like sg-62f43457) of a remote security g
 I wrote this to avoid adding lots of outputs to certain templates.
 
 
+### AWS DefaultVPC ID ###
+
+Allows you to look up the default VPC id for a given ec2 region.
+
+    - debug: msg="The default vpc is {{ lookup('default_vpc', 'ap-southeast-1') }}"
+
+Currently doesn't handle ec2classics.
