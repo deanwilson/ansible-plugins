@@ -5,13 +5,13 @@
 # (at your option) any later version.
 
 from ansible import errors
-import os
 
 try:
     import boto
     import boto.elasticache
 except ImportError:
-    raise errors.AnsibleError("Can't LOOKUP(elasticache_replica_group): module boto is not installed")
+    raise errors.AnsibleError(
+        "Can't LOOKUP(elasticache_replica_group): boto is not installed")
 
 
 class ElasticacheReplicaGroup(object):
@@ -19,20 +19,13 @@ class ElasticacheReplicaGroup(object):
     def __init__(self, region, replica_group):
         self.region = region
         self.replica_group = replica_group
-
-        self.aws_secret_key = os.environ['AWS_SECRET_KEY']
-        self.aws_access_key = os.environ['AWS_ACCESS_KEY']
-
         self.meta = self.get_metadata()
 
         # short cut to reduce duplication in the methods.
         self.groups = self.meta['DescribeReplicationGroupsResponse']['DescribeReplicationGroupsResult']['ReplicationGroups'][0]
 
     def get_metadata(self):
-        conn = boto.elasticache.connect_to_region(self.region,
-                   aws_access_key_id=self.aws_access_key,
-                   aws_secret_access_key=self.aws_secret_key)
-
+        conn = boto.elasticache.connect_to_region(self.region)
         self.meta = conn.describe_replication_groups(self.replica_group)
 
         return self.meta
