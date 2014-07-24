@@ -107,7 +107,7 @@ def main():
             time=dict(default=None),
             criticality=dict(default='info',
                              choices=['info', 'notification',
-                                      'warning', 'error'
+                                      'warning', 'error',
                                       'critical'])))
 
     host = module.params.get('host')
