@@ -1,0 +1,96 @@
+#!/usr/bin/python
+
+DOCUMENTATION = '''
+---
+module: cloudformation_stack_facts
+short_description: Retrieve information about a CloudFormation Stack
+description:
+  - Retrieve information about a CloudFormation Stack
+author: Dean Wilson
+requirements:
+  - Requires the Boto module
+options:
+  stack_name:
+    description:
+      - The CloudFormation Stack to look up.
+    required: true
+    default: null
+    aliases: []
+extends_documentation_fragment: aws
+
+'''
+
+EXAMPLES = '''
+
+  - name: get cloudformation stack facts details
+    cloudformation_stack_facts: stack_name="example_stackname" region="{{ region }}"
+    register: cfn_stack
+
+  - debug: var=cfn_stack
+
+'''
+
+try:
+    import boto
+    import boto.cloudformation
+except ImportError:
+    print "failed=True msg='boto required for this module'"
+    exit(1)
+
+
+def main():
+    argument_spec = ec2_argument_spec()
+    argument_spec.update(
+        dict(
+            stack_name=dict(required=True),
+        )
+    )
+    module = AnsibleModule(
+        argument_spec=argument_spec,
+    )
+
+    stack_name = module.params['stack_name']
+    region = module.params['region']
+
+    cfn = boto.cloudformation.connect_to_region(region)
+
+    try:
+        stack = cfn.describe_stacks(stack_name)[0]
+    except boto.exception.BotoServerError as e:
+        if 'does not exist' in e.body:
+            module.fail_json(msg="The {0} stack was not found in {1}".format(stack_name, region))
+        else:
+            module.fail_json(msg=e.body)
+
+    result = {
+        'stack_description': stack.description,
+        'stack_id': stack.stack_id,
+        'stack_name': stack_name,
+        'stack_outputs': {},
+        'stack_params': {},
+        'stack_resources': {},
+        'stack_tags': stack.tags,
+        'stack_status': stack.stack_status,
+        'stack_creation_time': str(stack.creation_time),
+    }
+
+    for output in stack.outputs:
+        result['stack_outputs'][output.key] = output.value
+
+    for param in stack.parameters:
+        result['stack_params'][param.key] = param.value
+
+    for resource in stack.list_resources():
+        result['stack_resources'][resource.logical_resource_id] = {
+            'physical_resource_id': resource.physical_resource_id,
+            'resource_type': resource.resource_type,
+            'resource_status': resource.resource_status
+        }
+
+    module.exit_json(**result)
+
+# import module snippets
+from ansible.module_utils.basic import *
+from ansible.module_utils.ec2 import *
+
+main()

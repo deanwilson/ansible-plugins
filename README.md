@@ -5,6 +5,21 @@ Ansible Plugins
 
 ## Notification Plugins ##
 
+### cloudformation_stack_facts ###
+
+Retrieve information about a CloudFormation Stack
+
+    - name: get cloudformation stack facts details
+      cloudformation_stack_facts: stack_name="example_stackname" region="{{ region }}"
+      register: cfn_stack
+
+    - debug: var=cfn_stack
+
+This module returns a datastructure containing the params, outputs,
+resources and tags included in a stack as well as other stack attributes
+such as status, created time and description.
+
+
 ### route53_zone_facts ###
 
 Basic module to return information about a route53 hosted zone.
