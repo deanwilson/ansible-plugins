@@ -5,6 +5,36 @@ Ansible Plugins
 
 ## Notification Plugins ##
 
+### route53_zone_facts ###
+
+Basic module to return information about a route53 hosted zone.
+
+    - name: get route53 info
+      route53_zone_facts: zone_name="example.org." region="eu-west-1"
+      register: zone_info
+
+    - debug: var=zone_info
+
+The structure returned looks like this:
+
+    "zone_info": {
+      "changed": false,
+      "invocation": {
+        "module_args": "zone_name=\"example.org.\" region=\"eu-west-1\"",
+        "module_name": "route53_zone_facts"
+      },
+      "name_servers": [
+        "ns-fsfsff.awsdns-015.com.",
+        "ns-dfsfsfs.awsdns-219.co.uk."
+      ],
+      "record_count": "2001",
+      "zone_comment": "Public example.org. zone.",
+      "zone_id": "ZLT8CAAHEM",
+      "zone_name": "example.org.",
+      "zone_type": "public"
+    }
+
+
 ### changelog  ###
 
 A simple notification plugin for the [Prezi Changelog](https://github.com/prezi/changelog)
