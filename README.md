@@ -23,11 +23,11 @@ such as status, created time and description.
 
 Retrieve information about an Elastic Load Balancer
 
-  - name: Retrieve details for the ELB
-    elb_facts: elb_name="appname-UAS42ASXZ" region="{{ region }}"
-    register: elb_info
+    - name: Retrieve details for the ELB
+      elb_facts: elb_name="appname-UAS42ASXZ" region="{{ region }}"
+      register: elb_info
 
-  - debug: var=elb_info
+    - debug: var=elb_info
 
 The structure returned looks like this:
 
