@@ -1,0 +1,84 @@
+#!/usr/bin/python
+
+DOCUMENTATION = '''
+---
+module: elb_facts
+short_description: Retrieve information about an Elastic Load Balancer
+description:
+  - Retrieve information about an Elastic Load Balancer
+author: Dean Wilson
+requirements:
+  - Requires the Boto module
+options:
+  stack_name:
+    description:
+      - The ELB name to look up.
+    required: true
+    default: null
+    aliases: []
+extends_documentation_fragment: aws
+
+'''
+
+EXAMPLES = '''
+
+  - name: Retrieve details for the ELB
+    elb_facts: elb_name="appname-UAS42ASXZ" region="{{ region }}"
+    register: elb_info
+
+  - debug: var=elb_info
+
+'''
+
+
+try:
+    import boto
+    import boto.ec2.elb
+
+except ImportError:
+    print "failed=True msg='boto required for this module'"
+    exit(1)
+
+
+def main():
+    argument_spec = ec2_argument_spec()
+    argument_spec.update(
+        dict(
+            elb_name=dict(required=True),
+        )
+    )
+    module = AnsibleModule(
+        argument_spec=argument_spec,
+    )
+
+    elb_name = module.params['elb_name']
+    region = module.params['region']
+
+    elb = boto.ec2.elb.connect_to_region(region)
+
+    try:
+        lb = elb.get_all_load_balancers(load_balancer_names=[elb_name])[0]
+    except boto.exception.BotoServerError as e:
+        if 'Cannot find Load Balancer' in e.body:
+            module.fail_json(msg="The ELB {0} was not found in {1}".format(elb_name, region))
+        else:
+            module.fail_json(msg=e.body)
+
+    result = {
+        'name': lb.name,
+        'zone_id': lb.canonical_hosted_zone_name_id,
+        'dns_name': lb.dns_name,
+        'created_time': lb.created_time,
+        'scheme': lb.scheme,
+        'vpc_id': lb.vpc_id,
+        'cross_az_lb': lb.enable_cross_zone_load_balancing(),
+    }
+
+    module.exit_json(**result)
+
+
+# import module snippets
+from ansible.module_utils.basic import *
+from ansible.module_utils.ec2 import *
+
+main()

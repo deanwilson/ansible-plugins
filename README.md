@@ -19,6 +19,27 @@ This module returns a datastructure containing the params, outputs,
 resources and tags included in a stack as well as other stack attributes
 such as status, created time and description.
 
+### elb_facts ###
+
+Retrieve information about an Elastic Load Balancer
+
+  - name: Retrieve details for the ELB
+    elb_facts: elb_name="appname-UAS42ASXZ" region="{{ region }}"
+    register: elb_info
+
+  - debug: var=elb_info
+
+The structure returned looks like this:
+
+    "elb_info": {
+        "created_time": "2015-05-07T13:42:46.510Z",
+        "cross_az_lb": true,
+        "dns_name": "appname-UAS42ASXZ.eu-west-1.elb.amazonaws.com",
+        "name": "appname-UAS42ASXZ",
+        "scheme": "internet-facing",
+        "vpc_id": "vpc-23df567d8",
+        "zone_id": "Z3NF1ZF1HGF3"
+    }
 
 ### route53_zone_facts ###
 
