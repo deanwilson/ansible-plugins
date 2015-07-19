@@ -13,7 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
 
-from ansible import utils, errors
+from ansible import errors
+import sys
+from traceback import format_exception
 
 try:
     import boto
@@ -29,12 +31,18 @@ class Cloudformation(object):
         self.region = region
         self.stack_name = stack_name
 
-    def get_output(self, key):
+    def get_item(self, resource_type, key):
         conn = boto.cloudformation.connect_to_region(self.region)
         stack = conn.describe_stacks(stack_name_or_id=self.stack_name)[0]
-        value = [output.value for output in stack.outputs if output.key == key]
-
-        return value
+        if resource_type in ['parameter', 'output']:
+            attr = "{0}s".format(resource_type)
+            return [item.value for item in
+                    getattr(stack, attr) if item.key == key]
+        elif resource_type == 'resource_id':
+            return [stack.describe_resources(key)[0].physical_resource_id]
+        else:
+            raise errors.AnsibleError(
+                "unknown resource type {0}".format(resource_type))
 
 
 class LookupModule(object):
@@ -43,12 +51,13 @@ class LookupModule(object):
         self.basedir = basedir
 
     def run(self, terms, inject=None, **kwargs):
-        region, stack, value_type, key = terms.split('/')
+        try:
+            region, stack, value_type, key = terms.split('/')
 
-        self.cfn = Cloudformation(region, stack)
-
-        value = False
-        if value_type == 'output':
-            value = self.cfn.get_output(key)
-
-        return value
+            self.cfn = Cloudformation(region, stack)
+            value = self.cfn.get_item(value_type, key)
+            return value
+        except Exception:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            raise errors.AnsibleError(
+                format_exception(exc_type, exc_value, exc_traceback))
