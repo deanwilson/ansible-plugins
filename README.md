@@ -1,9 +1,7 @@
-ansible-plugins
+Ansible Plugins
 ===============
 
-Ansible Plugins
-
-## Notification Plugins ##
+## Fact Modules ##
 
 ### cloudformation_stack_facts ###
 
@@ -70,6 +68,42 @@ The structure returned looks like this:
       "zone_type": "public"
     }
 
+### yum_plugins ###
+
+Basic module that returns facts for the yum plugins installed on the host.
+
+    - name: Retrieve yum plugin details
+      yum_plugins:
+
+    - debug: var=yum_plugins
+
+Sample output
+
+    TASK: [debug var=yum_plugins]
+    *************************************************
+    ok: [localhost] => {
+        "var": {
+            "yum_plugins": {
+                "disabled": [
+                    "blacklist",
+                    "whiteout"
+                ],
+                "enabled": [
+                    "langpacks",
+                    "refresh-packagekit"
+                ],
+                "plugin": [
+                    "blacklist",
+                    "langpacks",
+                    "refresh-packagekit",
+                    "whiteout"
+                ]
+            }
+        }
+    }
+
+
+## Modules ##
 
 ### changelog  ###
 
