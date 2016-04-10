@@ -14,6 +14,8 @@
 # along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
 
 from ansible import errors
+from ansible.plugins.lookup import LookupBase
+
 
 try:
     import boto
@@ -33,18 +35,19 @@ class AWSSecurityGroupID(object):
         # TODO error checking
         conn = boto.ec2.connect_to_region(self.region)
 
-        sg = conn.get_all_security_groups(groupnames=group_name)[0]
+        sgs = conn.get_all_security_groups()
+        filtered = filter(lambda x: x.name==group_name, sgs)[0]
 
-        return [sg.id]
+        return [filtered.id]
 
 
-class LookupModule(object):
+class LookupModule(LookupBase):
 
     def __init__(self, basedir=None, **kwargs):
         self.basedir = basedir
 
     def run(self, terms, inject=None, **kwargs):
-        region, group_name = terms.split('/')
+        region, group_name = terms[0].split('/')
 
         self.sg = AWSSecurityGroupID(region)
 
