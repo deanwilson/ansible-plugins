@@ -12,8 +12,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+# Refactored for Ansible 2.0 by Josh Quint  josh at turinggroup.com
 
 from ansible import errors
+from ansible.plugins.lookup import LookupBase
 import sys
 from traceback import format_exception
 
@@ -23,7 +25,6 @@ try:
 except ImportError:
     raise errors.AnsibleError(
         "Can't LOOKUP(cloudformation): module boto is not installed")
-
 
 class Cloudformation(object):
 
@@ -45,15 +46,14 @@ class Cloudformation(object):
                 "unknown resource type {0}".format(resource_type))
 
 
-class LookupModule(object):
+class LookupModule(LookupBase):
 
     def __init__(self, basedir=None, **kwargs):
         self.basedir = basedir
 
     def run(self, terms, inject=None, **kwargs):
         try:
-            region, stack, value_type, key = terms.split('/')
-
+            region, stack, value_type, key = terms[0].split('/')
             self.cfn = Cloudformation(region, stack)
             value = self.cfn.get_item(value_type, key)
             return value
