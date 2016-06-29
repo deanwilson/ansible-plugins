@@ -4,6 +4,7 @@
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
+from ansible.plugins.lookup import LookupBase
 from ansible import errors
 
 try:
@@ -37,14 +38,14 @@ class ElasticacheReplicaGroup(object):
         return self.groups['NodeGroups'][0]['PrimaryEndpoint']['Port']
 
 
-class LookupModule(object):
+class LookupModule(LookupBase):
 
     def __init__(self, basedir=None, **kwargs):
         self.basedir = basedir
 
     def run(self, terms, inject=None, **kwargs):
 
-        region, repl_group, query_type = terms.split('/')
+        region, repl_group, query_type = terms[0].split('/')
 
         self.erg = ElasticacheReplicaGroup(region, repl_group)
 
